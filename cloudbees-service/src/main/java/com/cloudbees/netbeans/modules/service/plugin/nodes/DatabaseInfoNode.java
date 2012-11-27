@@ -1,6 +1,8 @@
 package com.cloudbees.netbeans.modules.service.plugin.nodes;
 
 import com.cloudbees.api.DatabaseInfo;
+import com.cloudbees.netbeans.modules.service.plugin.actions.DeleteDatabaseAction;
+import com.cloudbees.netbeans.modules.service.plugin.actions.StartApplicationAction;
 import com.cloudbees.netbeans.modules.service.plugin.model.CloudbeesInstance;
 import java.awt.Image;
 import java.util.ArrayList;
@@ -10,6 +12,8 @@ import javax.swing.Action;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.util.ImageUtilities;
+import org.openide.util.Lookup;
+import org.openide.util.lookup.Lookups;
 
 /**
  *
@@ -24,7 +28,7 @@ public class DatabaseInfoNode extends AbstractNode {
     private DatabaseInfo mDatabaseInfo;
 
     public DatabaseInfoNode(CloudbeesInstance instance, DatabaseInfo info) {
-        super(Children.LEAF);
+        super(Children.LEAF, Lookups.fixed(instance, info));
         this.mInstance = instance;
         this.mDatabaseInfo = info;
         
@@ -61,6 +65,7 @@ public class DatabaseInfoNode extends AbstractNode {
     public Action[] getActions(boolean context) {
         Action[] baseActions = super.getActions(context);
         List<Action> actions = new ArrayList<Action>();
+        actions.add(new DeleteDatabaseAction());
         actions.addAll(Arrays.asList(baseActions));
         return actions.toArray(new Action[actions.size()]);
     }

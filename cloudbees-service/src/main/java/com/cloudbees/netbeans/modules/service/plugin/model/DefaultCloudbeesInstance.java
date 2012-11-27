@@ -219,4 +219,14 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
         IOProvider ioProvider = IOProvider.getDefault();
         return ioProvider.getIO(logName, false);
     }
+
+    @Override
+    public boolean deleteDatabase(String databaseId) {
+        try {
+            return clientMgr.deleteDatabase(databaseId);
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return false;
+        }
+    }
 }

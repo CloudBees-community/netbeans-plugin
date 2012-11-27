@@ -7,6 +7,7 @@ import com.cloudbees.api.ApplicationRestartResponse;
 import com.cloudbees.api.ApplicationStatusResponse;
 import com.cloudbees.api.BeesClient;
 import com.cloudbees.api.BeesClientConfiguration;
+import com.cloudbees.api.DatabaseDeleteResponse;
 import com.cloudbees.api.DatabaseInfo;
 import com.cloudbees.api.DatabaseListResponse;
 import java.io.OutputStream;
@@ -97,11 +98,20 @@ public class CloudbeesClientManager {
     public boolean deleteApplication(String applicationId) throws Exception {
         this.connect();
         
-        ApplicationDeleteResponse status = client.applicationDelete(applicationId);
-        return status.isDeleted();
+        ApplicationDeleteResponse response = client.applicationDelete(applicationId);
+        return response.isDeleted();
     }
     
     public void tailApplicationLog(String applicationId, String logName, OutputStream os) throws Exception {
+        this.connect();
+        
         client.tailLog(applicationId, logName, os);
+    }
+    
+    public boolean deleteDatabase(String databaseId) throws Exception {
+        this.connect();
+        
+        DatabaseDeleteResponse response = client.databaseDelete(databaseId);
+        return response.isDeleted();
     }
 }
