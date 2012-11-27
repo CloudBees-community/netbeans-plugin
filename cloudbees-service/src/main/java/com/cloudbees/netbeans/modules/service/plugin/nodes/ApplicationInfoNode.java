@@ -1,20 +1,19 @@
 package com.cloudbees.netbeans.modules.service.plugin.nodes;
 
 import com.cloudbees.api.ApplicationInfo;
+import com.cloudbees.netbeans.modules.service.plugin.actions.OpenUrlAction;
+import com.cloudbees.netbeans.modules.service.plugin.actions.RestartApplicationAction;
+import com.cloudbees.netbeans.modules.service.plugin.actions.StartApplicationAction;
+import com.cloudbees.netbeans.modules.service.plugin.actions.StopApplicationAction;
 import com.cloudbees.netbeans.modules.service.plugin.model.CloudbeesInstance;
 import java.awt.Image;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import javax.swing.Action;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
-import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
-import org.openide.util.WeakListeners;
 import org.openide.util.lookup.Lookups;
 
 /**
@@ -23,13 +22,13 @@ import org.openide.util.lookup.Lookups;
  */
 public class ApplicationInfoNode extends AbstractNode {
 
-    private static final Image SERVICE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/application.png", true); // NOI18N
-
+    private static final Image RUNNING_BADGE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/running.png", true); // NOI18N
+    
     private CloudbeesInstance mInstance;
     private ApplicationInfo mApplicationInfo;
 
     public ApplicationInfoNode(CloudbeesInstance instance, ApplicationInfo info) {
-        super(new ApplicationInfoNodeChildren(instance, info), Lookups.fixed(instance, info));
+        super(Children.LEAF, Lookups.fixed(instance, info));
         this.mInstance = instance;
         this.mApplicationInfo = info;
         
@@ -41,7 +40,7 @@ public class ApplicationInfoNode extends AbstractNode {
             this.setShortDescription(desc);
         }
     }
-
+    
     @Override
     public Image getIcon(int type) {
         Image img = computeIcon(false, type);
@@ -55,56 +54,23 @@ public class ApplicationInfoNode extends AbstractNode {
     }
 
     private Image computeIcon(boolean opened, int type) {
-        return SERVICE_ICON;
+        Image img = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/" + mApplicationInfo.getSettings().get("containerType") + ".png", true);
+        if (this.mApplicationInfo.getStatus().equals("active")) {
+            img = ImageUtilities.mergeImages(img, RUNNING_BADGE_ICON, 12, 0);
+        }
+        return img;
     }
 
     @Override
     public Action[] getActions(boolean context) {
         Action[] baseActions = super.getActions(context);
         List<Action> actions = new ArrayList<Action>();
+        actions.add(new StartApplicationAction());
+        actions.add(new RestartApplicationAction());
+        actions.add(new StopApplicationAction());
+        actions.add(null);
+        actions.add(OpenUrlAction.forOpenable(mApplicationInfo));
         actions.addAll(Arrays.asList(baseActions));
         return actions.toArray(new Action[actions.size()]);
-    }
-
-    private static final class ApplicationInfoNodeChildren extends Children.Keys <String>
-            implements ChangeListener {
-
-        private CloudbeesInstance mInstance;
-        private ApplicationInfo mApplicationInfo;
-
-        public ApplicationInfoNodeChildren(CloudbeesInstance instance, ApplicationInfo info) {
-            this.mInstance = instance;
-            ChangeListener cl = WeakListeners.change(this, this.mInstance);
-            this.mInstance.addChangeListener(cl);
-        }
-
-        private void updateKeys() {
-            String[] keys = {};
-            setKeys(keys);
-        }
-
-        protected Node[] createNodes(String key) {
-            return new Node[0];
-        }
-
-        @Override
-        protected void addNotify() {
-            super.addNotify();
-            updateKeys();
-        }
-
-        @Override
-        protected void removeNotify() {
-            java.util.List<String> emptyList = Collections.emptyList();
-            setKeys(emptyList);
-            super.removeNotify();
-        }
-
-        public void stateChanged(ChangeEvent e) {
-            Object source = e.getSource();
-            if (source == this.mInstance) {
-                updateKeys();
-            }
-        }
     }
 }

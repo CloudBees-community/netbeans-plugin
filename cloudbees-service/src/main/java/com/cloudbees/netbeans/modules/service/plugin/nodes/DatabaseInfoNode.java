@@ -5,17 +5,11 @@ import com.cloudbees.netbeans.modules.service.plugin.model.CloudbeesInstance;
 import java.awt.Image;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import javax.swing.Action;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
-import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
-import org.openide.util.WeakListeners;
-import org.openide.util.lookup.Lookups;
 
 /**
  *
@@ -23,13 +17,14 @@ import org.openide.util.lookup.Lookups;
  */
 public class DatabaseInfoNode extends AbstractNode {
 
-    private static final Image SERVICE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/database.png", true); // NOI18N
+    private static final Image RUNNING_BADGE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/running.png", true); // NOI18N
+    private static final Image DATABASE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/database.png", true); // NOI18N
 
     private CloudbeesInstance mInstance;
     private DatabaseInfo mDatabaseInfo;
 
     public DatabaseInfoNode(CloudbeesInstance instance, DatabaseInfo info) {
-        super(new DatabaseInfoNodeChildren(instance, info), Lookups.fixed(instance, info));
+        super(Children.LEAF);
         this.mInstance = instance;
         this.mDatabaseInfo = info;
         
@@ -55,7 +50,11 @@ public class DatabaseInfoNode extends AbstractNode {
     }
 
     private Image computeIcon(boolean opened, int type) {
-        return SERVICE_ICON;
+        Image img = DATABASE_ICON;
+        if (this.mDatabaseInfo.getStatus().equals("active")) {
+            img = ImageUtilities.mergeImages(DATABASE_ICON, RUNNING_BADGE_ICON, 12, 0);
+        }
+        return img;
     }
 
     @Override
@@ -64,47 +63,5 @@ public class DatabaseInfoNode extends AbstractNode {
         List<Action> actions = new ArrayList<Action>();
         actions.addAll(Arrays.asList(baseActions));
         return actions.toArray(new Action[actions.size()]);
-    }
-
-    private static final class DatabaseInfoNodeChildren extends Children.Keys <String>
-            implements ChangeListener {
-
-        private CloudbeesInstance mInstance;
-        private DatabaseInfo mDatabaseInfo;
-
-        public DatabaseInfoNodeChildren(CloudbeesInstance instance, DatabaseInfo info) {
-            this.mInstance = instance;
-            ChangeListener cl = WeakListeners.change(this, this.mInstance);
-            this.mInstance.addChangeListener(cl);
-        }
-
-        private void updateKeys() {
-            String[] keys = {};
-            setKeys(keys);
-        }
-
-        protected Node[] createNodes(String key) {
-            return new Node[0];
-        }
-
-        @Override
-        protected void addNotify() {
-            super.addNotify();
-            updateKeys();
-        }
-
-        @Override
-        protected void removeNotify() {
-            java.util.List<String> emptyList = Collections.emptyList();
-            setKeys(emptyList);
-            super.removeNotify();
-        }
-
-        public void stateChanged(ChangeEvent e) {
-            Object source = e.getSource();
-            if (source == this.mInstance) {
-                updateKeys();
-            }
-        }
     }
 }

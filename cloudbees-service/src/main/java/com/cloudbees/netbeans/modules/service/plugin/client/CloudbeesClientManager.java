@@ -1,7 +1,10 @@
 package com.cloudbees.netbeans.modules.service.plugin.client;
 
+import com.cloudbees.api.ApplicationDeleteResponse;
 import com.cloudbees.api.ApplicationInfo;
 import com.cloudbees.api.ApplicationListResponse;
+import com.cloudbees.api.ApplicationRestartResponse;
+import com.cloudbees.api.ApplicationStatusResponse;
 import com.cloudbees.api.BeesClient;
 import com.cloudbees.api.BeesClientConfiguration;
 import com.cloudbees.api.DatabaseInfo;
@@ -67,5 +70,33 @@ public class CloudbeesClientManager {
         
         DatabaseListResponse dlr = client.databaseList();
         return dlr.getDatabases();
+    }
+    
+    public String startApplication(String applicationId) throws Exception {
+        this.connect();
+        
+        ApplicationStatusResponse status = client.applicationStart(applicationId);
+        return status.getStatus();
+    }
+    
+    public String stopApplication(String applicationId) throws Exception {
+        this.connect();
+        
+        ApplicationStatusResponse status = client.applicationStop(applicationId);
+        return status.getStatus();
+    }
+    
+    public boolean restartApplication(String applicationId) throws Exception {
+        this.connect();
+        
+        ApplicationRestartResponse status = client.applicationRestart(applicationId);
+        return status.isRestarted();
+    }
+    
+    public boolean deleteApplication(String applicationId) throws Exception {
+        this.connect();
+        
+        ApplicationDeleteResponse status = client.applicationDelete(applicationId);
+        return status.isDeleted();
     }
 }

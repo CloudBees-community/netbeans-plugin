@@ -17,9 +17,14 @@ public interface CloudbeesInstance {
     public static final String PROP_APIKEY = "ApiKey";
     public static final String PROP_SECRET = "Secret";
     
+    /* CloudBees API */
     List<ApplicationInfo> listApplicationInfos();
-    
     List<DatabaseInfo> listDatabaseInfos();
+    String startApplication(String applicationId);
+    String stopApplication(String applicationId);
+    boolean restartApplication(String applicationId);
+    boolean deleteApplication(String applicationId);
+    /* End CloudBees API */
     
     String getPreferenceName();
     

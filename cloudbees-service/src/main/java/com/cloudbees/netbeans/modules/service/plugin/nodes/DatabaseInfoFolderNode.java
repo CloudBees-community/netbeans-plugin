@@ -26,8 +26,8 @@ import org.openide.util.lookup.Lookups;
  * @author David BRASSELY
  */
 public class DatabaseInfoFolderNode extends AbstractNode {
-    private static final Image FOLDER_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/folder.png", true); // NOI18N
-    private static final Image BADGE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/database-badge.png", true); // NOI18N
+    
+    static final String ICON_BASE = "com/cloudbees/netbeans/modules/service/plugin/nodes/resources/databases.png"; // NOI18N
     public static final String FOLDER_KEY = "DatabaseFolderNode";
 
     private CloudbeesInstance mInstance;
@@ -36,35 +36,12 @@ public class DatabaseInfoFolderNode extends AbstractNode {
         super(new DatabaseInfoFolderNodeChildren(instance), Lookups.singleton(instance));
         this.mInstance = instance;
         this.setName(FOLDER_KEY);
+        this.setIconBaseWithExtension(ICON_BASE);
     }
 
     @Override
     public String getDisplayName() {
         return NbBundle.getMessage(ApplicationInfoFolderNode.class, "LBL_DatabaseFolderNode");
-    }
-
-    @Override
-    public Image getIcon(int type) {
-        Image img = computeIcon(false, type);
-        return (img != null) ? img : super.getIcon(type);
-    }
-
-    @Override
-    public Image getOpenedIcon(int type) {
-        Image img = computeIcon(true, type);
-        return (img != null) ? img : super.getIcon(type);
-    }
-
-    private Image computeIcon(boolean opened, int type) {
-        Image badge = null;
-        badge = BADGE_ICON;
-
-        if (badge == null) {
-            return FOLDER_ICON;
-        } else {
-            Image img = ImageUtilities.mergeImages(FOLDER_ICON, badge, 8, 8);
-            return img;
-        }
     }
 
     @Override

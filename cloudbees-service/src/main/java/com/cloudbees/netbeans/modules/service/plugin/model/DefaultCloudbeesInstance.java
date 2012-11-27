@@ -99,7 +99,7 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
         try {
             list = clientMgr.listApplicationInfos();
         } catch (Exception ex) {
-             LOG.log(Level.FINE, ex.getMessage(), ex);
+             LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
         
         return list;
@@ -112,10 +112,50 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
         try {
             list = clientMgr.listDatabaseInfos();
         } catch (Exception ex) {
-             LOG.log(Level.FINE, ex.getMessage(), ex);
+             LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
         
         return list;
+    }
+    
+    @Override
+    public String startApplication(String applicationId) {
+        try {
+            return clientMgr.startApplication(applicationId);
+        } catch (Exception ex) {
+             LOG.log(Level.WARNING, ex.getMessage(), ex);
+             return null;
+        }
+    }
+
+    @Override
+    public String stopApplication(String applicationId) {
+        try {
+            return clientMgr.stopApplication(applicationId);
+        } catch (Exception ex) {
+             LOG.log(Level.WARNING, ex.getMessage(), ex);
+             return null;
+        }
+    }
+
+    @Override
+    public boolean restartApplication(String applicationId) {
+        try {
+            return clientMgr.restartApplication(applicationId);
+        } catch (Exception ex) {
+             LOG.log(Level.WARNING, ex.getMessage(), ex);
+             return false;
+        }
+    }
+
+    @Override
+    public boolean deleteApplication(String applicationId) {
+        try {
+            return clientMgr.deleteApplication(applicationId);
+        } catch (Exception ex) {
+             LOG.log(Level.WARNING, ex.getMessage(), ex);
+             return false;
+        }
     }
 
     @Override
