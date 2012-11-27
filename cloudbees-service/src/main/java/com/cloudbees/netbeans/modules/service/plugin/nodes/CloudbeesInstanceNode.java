@@ -1,44 +1,50 @@
 package com.cloudbees.netbeans.modules.service.plugin.nodes;
 
 import com.cloudbees.netbeans.modules.service.plugin.CloudbeesInstanceManager;
+import com.cloudbees.netbeans.modules.service.plugin.actions.CustomizeInstanceAction;
 import com.cloudbees.netbeans.modules.service.plugin.model.CloudbeesInstance;
-import java.util.Collections;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.Action;
-import org.netbeans.api.core.ide.ServicesTabNodeRegistration;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
-import org.openide.util.NbBundle;
+import org.openide.util.actions.SystemAction;
+import org.openide.util.lookup.Lookups;
 
 /**
- * 
- * 
+ *
  * @author David BRASSELY
  */
-@ServicesTabNodeRegistration(name=CloudbeesManagerNode.CLOUDBEES_ROOT_NAME, displayName="#LBL_CloudbeesNode", shortDescription="#LBL_CloudbeesNode", iconResource=CloudbeesManagerNode.ICON_BASE, position=488)
-public class CloudbeesManagerNode extends AbstractNode {
-
-    public static final String CLOUDBEES_ROOT_NAME = "Cloudbees"; // NOI18N
+public class CloudbeesInstanceNode extends AbstractNode {
+    
+    private CloudbeesInstance mInstance;
+    
     static final String ICON_BASE = "com/cloudbees/netbeans/modules/service/plugin/nodes/resources/cloudbees.png"; // NOI18N
     
-    private CloudbeesManagerNode() {
-        super(new CloudbeesInstanceNodeChildren());
-        setName(CLOUDBEES_ROOT_NAME);
-        setDisplayName(NbBundle.getMessage(CloudbeesManagerNode.class, "LBL_CloudbeesNode"));
-        setIconBaseWithExtension(ICON_BASE);
+    public CloudbeesInstanceNode(final CloudbeesInstance instance) {
+        super(new InstanceNodeChildren(instance), Lookups.singleton(instance));
+        
+        this.mInstance = instance;
+        this.setName(this.mInstance.getPreferenceName());
+        this.setDisplayName(this.mInstance.getPreferenceName());
+        this.setIconBaseWithExtension(ICON_BASE);
     }
     
-    public @Override Action[] getActions(boolean context) {
+    @Override
+    public Action[] getActions(boolean context) {
+        Action[] baseActions = super.getActions(context);
         List<Action> actions = new ArrayList<Action>();
-    //    actions.add(new AddInstanceAction());
+        actions.add(SystemAction.get(CustomizeInstanceAction.class));
+        actions.addAll(Arrays.asList(baseActions));
         return actions.toArray(new Action[actions.size()]);
     }
-
-    private static final class CloudbeesInstanceNodeChildren extends Children.Keys<String> implements ChangeListener {
+    
+    private static final class InstanceNodeChildren extends Children.Keys<String> implements ChangeListener {
         
         private final String[] KEYS = {
                 ApplicationInfoFolderNode.FOLDER_KEY,
@@ -47,9 +53,8 @@ public class CloudbeesManagerNode extends AbstractNode {
         
         private CloudbeesInstance mInstance;
         
-        public CloudbeesInstanceNodeChildren() {
-            CloudbeesInstanceManager mgr = CloudbeesInstanceManager.getInstance();
-            mInstance = mgr.listCloudbeesInstances().iterator().next();
+        public InstanceNodeChildren(CloudbeesInstance mInstance) {
+            this.mInstance = mInstance;
         }
         
         protected Node[] createNodes(String key) {

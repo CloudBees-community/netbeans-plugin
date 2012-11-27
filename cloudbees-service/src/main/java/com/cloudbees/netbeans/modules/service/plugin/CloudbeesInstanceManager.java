@@ -2,6 +2,7 @@ package com.cloudbees.netbeans.modules.service.plugin;
 
 import com.cloudbees.netbeans.modules.service.plugin.model.CloudbeesInstance;
 import com.cloudbees.netbeans.modules.service.plugin.model.DefaultCloudbeesInstance;
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 /**
  *
@@ -37,22 +39,40 @@ public class CloudbeesInstanceManager {
     }
     
     protected void loadServerInstances() {
-        // TODO: please use Netbeans preferences system.
-        this.mInstanceMap.put("default", new DefaultCloudbeesInstance("", ""));
+        List<CloudbeesInstance> instanceList = CloudbeesPreferences.loadInstances();
         
-        /*
-        List<CloudbeesInstance> instanceList = CloudbeesInstancePreferences.loadInstances();
         for ( CloudbeesInstance inst : instanceList ) {
-            String root = inst.getRoot();
-            if ( root != null && root.trim().length() > 0 && new File(root).exists() ) {
-                this.mInstanceMap.put(inst.getPreferenceName(), inst);
-            }
-        }*/
+            this.mInstanceMap.put("default", inst);
+        }
     }
     
     public List<CloudbeesInstance> listCloudbeesInstances() {
         List<CloudbeesInstance> instanceList = new ArrayList<CloudbeesInstance>();
         instanceList.addAll(this.mInstanceMap.values());
         return instanceList;
+    }
+    
+    public CloudbeesInstance newServerInstance() {
+        Preferences prefs = CloudbeesPreferences.newInstancePreferences();
+        CloudbeesInstance instance = DefaultCloudbeesInstance.newInstance(prefs);
+        return instance;
+    }
+    
+    public void saveCloudbeesInstance(CloudbeesInstance instance) {
+        CloudbeesInstance oldInstance = this.mInstanceMap.put(instance.getPreferenceName(), instance);
+        CloudbeesPreferences.saveInstancePreferences(instance);
+        if ( oldInstance == null ) {
+            // a new instance is added. so, fire the property change event.
+            firePropertyChange(null, instance);
+        }
+        // notify change.
+    }
+    
+    protected void firePropertyChange(CloudbeesInstance oldValue, CloudbeesInstance newValue) {
+        this.mChangeSupport.firePropertyChange(CloudbeesInstance.PROP_CLOUDBEES_INSTANCE, oldValue, newValue);
+    }
+    
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        this.mChangeSupport.addPropertyChangeListener(l);
     }
 }
