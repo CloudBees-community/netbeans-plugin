@@ -9,12 +9,17 @@ import com.cloudbees.netbeans.modules.service.plugin.actions.StopApplicationActi
 import com.cloudbees.netbeans.modules.service.plugin.actions.ViewApplicationLogAction;
 import com.cloudbees.netbeans.modules.service.plugin.model.CloudbeesInstance;
 import java.awt.Image;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.swing.Action;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
+import org.openide.nodes.PropertySupport;
+import org.openide.nodes.Sheet;
 import org.openide.util.ImageUtilities;
 import org.openide.util.lookup.Lookups;
 
@@ -25,7 +30,6 @@ import org.openide.util.lookup.Lookups;
 public class ApplicationInfoNode extends AbstractNode {
 
     private static final Image RUNNING_BADGE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/running.png", true); // NOI18N
-    
     private CloudbeesInstance mInstance;
     private ApplicationInfo mApplicationInfo;
 
@@ -33,16 +37,16 @@ public class ApplicationInfoNode extends AbstractNode {
         super(Children.LEAF, Lookups.fixed(instance, info));
         this.mInstance = instance;
         this.mApplicationInfo = info;
-        
+
         this.setName(this.mApplicationInfo.getId());
         this.setDisplayName(mApplicationInfo.getTitle());
-        
+
         String desc = this.mApplicationInfo.getStatus();
         if (desc != null) {
             this.setShortDescription(desc);
         }
     }
-    
+
     @Override
     public Image getIcon(int type) {
         Image img = computeIcon(false, type);
@@ -61,6 +65,91 @@ public class ApplicationInfoNode extends AbstractNode {
             img = ImageUtilities.mergeImages(img, RUNNING_BADGE_ICON, 12, 0);
         }
         return img;
+    }
+
+    @Override
+    protected Sheet createSheet() {
+        Sheet sheet = super.createSheet();
+        Sheet.Set set = Sheet.createPropertiesSet();
+        Sheet.Set settings = Sheet.createPropertiesSet();
+        settings.setDisplayName("Settings");
+        settings.setName("settings");
+
+        final ApplicationInfo application = getLookup().lookup(ApplicationInfo.class);
+
+    //    Property idProp = PropertySupport.Reflection(application, String.class, "id");
+        try {
+            Property prop = new PropertySupport.ReadOnly<String>("Id", String.class, "Id", "Application ID") {
+                @Override
+                public String getValue() throws IllegalAccessException, InvocationTargetException {
+                    return application.getId();
+                }
+            };
+            set.put(prop);
+        } catch (Exception ex) {
+        }
+
+        try {
+            Property prop = new PropertySupport.ReadOnly<String>("Title", String.class, "Title", "Application Title") {
+                @Override
+                public String getValue() throws IllegalAccessException, InvocationTargetException {
+                    return application.getTitle();
+                }
+            };
+            set.put(prop);
+        } catch (Exception ex) {
+        }
+
+        try {
+            Property prop = new PropertySupport.ReadOnly<String>("Status", String.class, "Status", "Application Status") {
+                @Override
+                public String getValue() throws IllegalAccessException, InvocationTargetException {
+                    return application.getStatus();
+                }
+            };
+            set.put(prop);
+        } catch (Exception ex) {
+        }
+
+        try {
+            Property prop = new PropertySupport.ReadOnly<Date>("Created", Date.class, "Created On", "Creation Date") {
+                @Override
+                public Date getValue() throws IllegalAccessException, InvocationTargetException {
+                    return application.getCreated();
+                }
+            };
+            set.put(prop);
+        } catch (Exception ex) {
+        }
+
+        try {
+            Property prop = new PropertySupport.ReadOnly<String[]>("URL", String[].class, "Url", "Url") {
+                @Override
+                public String[] getValue() throws IllegalAccessException, InvocationTargetException {
+                    return application.getUrls();
+                }
+            };
+            set.put(prop);
+        } catch (Exception ex) {
+        }
+
+        // Settings properties
+        for (final Map.Entry<String, String> entry : application.getSettings().entrySet()) {
+            try {
+                Property prop = new PropertySupport.ReadOnly<String>(entry.getKey(), String.class, entry.getKey(), entry.getKey()) {
+                    @Override
+                    public String getValue() throws IllegalAccessException, InvocationTargetException {
+                        return entry.getValue();
+                    }
+                };
+                settings.put(prop);
+            } catch (Exception ex) {
+            }
+        }
+
+        sheet.put(set);
+        sheet.put(settings);
+        return sheet;
     }
 
     @Override
