@@ -18,7 +18,7 @@ import org.openide.util.ImageUtilities;
 public class DatabaseInfoNode extends AbstractNode {
 
     private static final Image RUNNING_BADGE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/running.png", true); // NOI18N
-    private static final Image DATABASE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/database.png", true); // NOI18N
+    private static final Image DATABASE_ICON = ImageUtilities.loadImage("com/cloudbees/netbeans/modules/service/plugin/nodes/resources/database.gif", true); // NOI18N
 
     private CloudbeesInstance mInstance;
     private DatabaseInfo mDatabaseInfo;

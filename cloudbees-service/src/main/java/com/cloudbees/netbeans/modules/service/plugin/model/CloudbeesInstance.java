@@ -24,6 +24,7 @@ public interface CloudbeesInstance {
     String stopApplication(String applicationId);
     boolean restartApplication(String applicationId);
     boolean deleteApplication(String applicationId);
+    void showApplicationLogWindow(String applicationId);
     /* End CloudBees API */
     
     String getPreferenceName();

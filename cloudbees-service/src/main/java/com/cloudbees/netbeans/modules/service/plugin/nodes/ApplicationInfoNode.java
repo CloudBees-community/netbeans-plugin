@@ -1,10 +1,12 @@
 package com.cloudbees.netbeans.modules.service.plugin.nodes;
 
 import com.cloudbees.api.ApplicationInfo;
+import com.cloudbees.netbeans.modules.service.plugin.actions.DeleteApplicationAction;
 import com.cloudbees.netbeans.modules.service.plugin.actions.OpenUrlAction;
 import com.cloudbees.netbeans.modules.service.plugin.actions.RestartApplicationAction;
 import com.cloudbees.netbeans.modules.service.plugin.actions.StartApplicationAction;
 import com.cloudbees.netbeans.modules.service.plugin.actions.StopApplicationAction;
+import com.cloudbees.netbeans.modules.service.plugin.actions.ViewApplicationLogAction;
 import com.cloudbees.netbeans.modules.service.plugin.model.CloudbeesInstance;
 import java.awt.Image;
 import java.util.ArrayList;
@@ -68,6 +70,10 @@ public class ApplicationInfoNode extends AbstractNode {
         actions.add(new StartApplicationAction());
         actions.add(new RestartApplicationAction());
         actions.add(new StopApplicationAction());
+        actions.add(null);
+        actions.add(new DeleteApplicationAction());
+        actions.add(null);
+        actions.add(new ViewApplicationLogAction());
         actions.add(null);
         actions.add(OpenUrlAction.forOpenable(mApplicationInfo));
         actions.addAll(Arrays.asList(baseActions));

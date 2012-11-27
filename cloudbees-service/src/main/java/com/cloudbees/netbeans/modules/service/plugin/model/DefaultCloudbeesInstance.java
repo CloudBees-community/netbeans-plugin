@@ -7,6 +7,11 @@ import com.cloudbees.api.BeesClientConfiguration;
 import com.cloudbees.api.DatabaseInfo;
 import com.cloudbees.api.DatabaseListResponse;
 import com.cloudbees.netbeans.modules.service.plugin.client.CloudbeesClientManager;
+import com.cloudbees.netbeans.modules.service.plugin.io.IOHandler;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -15,6 +20,8 @@ import java.util.prefs.Preferences;
 import javax.swing.event.ChangeListener;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Exceptions;
+import org.openide.windows.IOProvider;
+import org.openide.windows.InputOutput;
 
 /**
  *
@@ -23,13 +30,12 @@ import org.openide.util.Exceptions;
 public class DefaultCloudbeesInstance implements CloudbeesInstance {
 
     protected static final Logger LOG = Logger.getLogger(DefaultCloudbeesInstance.class.getName());
-    
     private String mPreferenceName;
     private String apiKey;
     private String secret;
     private ChangeSupport mChangeSupport;
     private CloudbeesClientManager clientMgr;
-    
+
     private DefaultCloudbeesInstance() {
         this(null);
     }
@@ -58,7 +64,7 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
         this.clientMgr.setApiKey(getApiKey());
         this.clientMgr.setSecret(getSecret());
     }
-    
+
     public static DefaultCloudbeesInstance newInstance(Preferences prefs) {
         DefaultCloudbeesInstance instance = new DefaultCloudbeesInstance(prefs);
         return instance;
@@ -95,36 +101,36 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
     @Override
     public List<ApplicationInfo> listApplicationInfos() {
         List<ApplicationInfo> list = new ArrayList<ApplicationInfo>();
-        
+
         try {
             list = clientMgr.listApplicationInfos();
         } catch (Exception ex) {
-             LOG.log(Level.WARNING, ex.getMessage(), ex);
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
-        
+
         return list;
     }
 
     @Override
     public List<DatabaseInfo> listDatabaseInfos() {
         List<DatabaseInfo> list = new ArrayList<DatabaseInfo>();
-        
+
         try {
             list = clientMgr.listDatabaseInfos();
         } catch (Exception ex) {
-             LOG.log(Level.WARNING, ex.getMessage(), ex);
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
-        
+
         return list;
     }
-    
+
     @Override
     public String startApplication(String applicationId) {
         try {
             return clientMgr.startApplication(applicationId);
         } catch (Exception ex) {
-             LOG.log(Level.WARNING, ex.getMessage(), ex);
-             return null;
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return null;
         }
     }
 
@@ -133,8 +139,8 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
         try {
             return clientMgr.stopApplication(applicationId);
         } catch (Exception ex) {
-             LOG.log(Level.WARNING, ex.getMessage(), ex);
-             return null;
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return null;
         }
     }
 
@@ -143,8 +149,8 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
         try {
             return clientMgr.restartApplication(applicationId);
         } catch (Exception ex) {
-             LOG.log(Level.WARNING, ex.getMessage(), ex);
-             return false;
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return false;
         }
     }
 
@@ -153,8 +159,8 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
         try {
             return clientMgr.deleteApplication(applicationId);
         } catch (Exception ex) {
-             LOG.log(Level.WARNING, ex.getMessage(), ex);
-             return false;
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return false;
         }
     }
 
@@ -175,5 +181,42 @@ public class DefaultCloudbeesInstance implements CloudbeesInstance {
     @Override
     public String getPreferenceName() {
         return this.mPreferenceName;
+    }
+
+    @Override
+    public void showApplicationLogWindow(final String applicationId) {
+        final String logName = applicationId + " - Log";
+        final InputOutput io = openApplicationLog(logName);
+
+        try {
+            PipedInputStream in = new PipedInputStream();
+            final PipedOutputStream out = new PipedOutputStream(in);
+
+            IOHandler mIOHandler = new IOHandler(io, in, out);
+
+            new Thread(
+                    new Runnable() {
+                        public void run() {
+                            try {
+                                clientMgr.tailApplicationLog(applicationId, "server", out);
+                            } catch (Exception e) {
+                                io.getErr().println("ERROR :" + e.getMessage());
+                            }
+                        }
+                    }).start();
+        } catch (Exception e) {
+        }
+
+    }
+
+    public InputOutput openApplicationLog(String logName) {
+        InputOutput io = createApplicationLogIO(logName);
+        io.select();
+        return io;
+    }
+
+    private InputOutput createApplicationLogIO(String logName) {
+        IOProvider ioProvider = IOProvider.getDefault();
+        return ioProvider.getIO(logName, false);
     }
 }

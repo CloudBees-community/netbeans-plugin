@@ -9,6 +9,7 @@ import com.cloudbees.api.BeesClient;
 import com.cloudbees.api.BeesClientConfiguration;
 import com.cloudbees.api.DatabaseInfo;
 import com.cloudbees.api.DatabaseListResponse;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -98,5 +99,9 @@ public class CloudbeesClientManager {
         
         ApplicationDeleteResponse status = client.applicationDelete(applicationId);
         return status.isDeleted();
+    }
+    
+    public void tailApplicationLog(String applicationId, String logName, OutputStream os) throws Exception {
+        client.tailLog(applicationId, logName, os);
     }
 }
